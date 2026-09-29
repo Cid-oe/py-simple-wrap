@@ -211,3 +211,76 @@ def read_env_file(file_path: str = ".env") -> dict[str, str]:
         return variables
     except Exception as e:
         raise EasyConfigError(f"\n\n\nERROR: {e}") from None
+
+
+def pre_commit_config(at_root: bool = True) -> None:
+    """
+    Creates a basic .pre-commit-config.yaml configuration file from a template.
+
+    The configuration file is written to '.pre-commit-config.yaml'. If the
+    file already exists, it is left alone. Any missing parent directories
+    are created automatically.
+
+    Args:
+        at_root (bool, optional): When True, the path is relative to the
+            current working directory. When False, the git repository
+            root is looked up and the config file is placed there.
+            Defaults to True.
+
+    Returns:
+        None
+
+    Raises:
+        EasyConfigError: If the template cannot be read, the git repository
+            cannot be found, or the file cannot be written.
+
+    Example:
+        === "The Py_simple Way"
+            ```python
+            from py_simple import pre_commit_config
+
+            pre_commit_config()
+            ```
+
+        === "The Traditional Way"
+            ```python
+            config_content = \"\"\"# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+\"\"\"
+            with open(".pre-commit-config.yaml", "w", encoding="utf-8") as f:
+                f.write(config_content)
+            ```
+    """
+    try:
+        if at_root:
+            config_path = ".pre-commit-config.yaml"
+        else:
+            import git
+
+            git_repo = git.Repo(os.getcwd(), search_parent_directories=True)
+            git_root = git_repo.git.rev_parse("--show-toplevel")
+            config_path = f"{git_root}/.pre-commit-config.yaml"
+
+        if not os.path.exists(config_path):
+            template_path = (
+                files("py_simple")
+                / "config_templates"
+                / "pre-commit-config-template.yml"
+            )
+            with template_path.open(encoding="utf-8") as f:
+                template = f.read()
+            parent_dir = os.path.dirname(config_path)
+            if parent_dir:
+                os.makedirs(parent_dir, exist_ok=True)
+            with open(config_path, "w", encoding="utf-8") as f:
+                f.write(template)
+    except Exception as e:
+        raise EasyConfigError(f"\n\n\nERROR: {e}") from None
