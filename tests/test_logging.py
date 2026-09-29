@@ -11,6 +11,7 @@ from py_simple_package.src.py_simple.easy_logging import (
     log_step,
     log_to_file,
     read_recent_log_lines,
+    setup_file_logger,
 )
 
 
@@ -198,3 +199,14 @@ def test_find_log_lines_returns_empty_list_when_file_is_missing(tmp_path):
     missing_file = tmp_path / "missing.log"
 
     assert find_log_lines(str(missing_file), "ERROR") == []
+
+
+def test_setup_file_logger_writes_to_file(tmp_path):
+    log_file = tmp_path / "app.log"
+    logger = setup_file_logger(str(log_file))
+    logger.info("Application started")
+
+    assert log_file.exists()
+    content = log_file.read_text(encoding="utf-8")
+    assert "INFO - Application started" in content
+
