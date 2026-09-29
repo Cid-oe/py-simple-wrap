@@ -96,6 +96,7 @@ def gh_workflow_config(filename: str, at_root: bool = True) -> None:
     except Exception as e:
         raise EasyConfigError(f"\n\n\nERROR: {e}") from None
 
+
 def create_env_file(
     variables: dict[str, str],
     file_path: str = ".env",
@@ -209,5 +210,78 @@ def read_env_file(file_path: str = ".env") -> dict[str, str]:
                 value = value.strip()
                 variables[key] = value
         return variables
+    except Exception as e:
+        raise EasyConfigError(f"\n\n\nERROR: {e}") from None
+
+
+def editorconfig_config(at_root: bool = True) -> None:
+    """
+    Creates a basic .editorconfig configuration file from a template.
+
+    The configuration file is written to '.editorconfig'. If the file
+    already exists, it is left alone. Any missing parent directories
+    are created automatically.
+
+    Args:
+        at_root (bool, optional): When True, the path is relative to the
+            current working directory. When False, the git repository
+            root is looked up and the config file is placed there.
+            Defaults to True.
+
+    Returns:
+        None
+
+    Raises:
+        EasyConfigError: If the template cannot be read, the git repository
+            cannot be found, or the file cannot be written.
+
+    Example:
+        === "The Py_simple Way"
+            ```python
+            from py_simple import editorconfig_config
+
+            editorconfig_config()
+            ```
+
+        === "The Traditional Way"
+            ```python
+            import os
+
+            if not os.path.exists(".editorconfig"):
+                with open(".editorconfig", "w", encoding="utf-8") as f:
+                    f.write(
+                        "# Top-most EditorConfig file\\n"
+                        "root = true\\n\\n"
+                        "[*]\\n"
+                        "end_of_line = lf\\n"
+                        "insert_final_newline = true\\n"
+                        "trim_trailing_whitespace = true\\n"
+                        "charset = utf-8\\n"
+                        "indent_style = space\\n"
+                        "indent_size = 4\\n"
+                    )
+            ```
+    """
+    try:
+        if at_root:
+            config_path = ".editorconfig"
+        else:
+            import git
+
+            git_repo = git.Repo(os.getcwd(), search_parent_directories=True)
+            git_root = git_repo.git.rev_parse("--show-toplevel")
+            config_path = f"{git_root}/.editorconfig"
+
+        if not os.path.exists(config_path):
+            template_path = (
+                files("py_simple") / "config_templates" / "editorconfig-template"
+            )
+            with template_path.open(encoding="utf-8") as f:
+                template = f.read()
+            parent_dir = os.path.dirname(config_path)
+            if parent_dir:
+                os.makedirs(parent_dir, exist_ok=True)
+            with open(config_path, "w", encoding="utf-8") as f:
+                f.write(template)
     except Exception as e:
         raise EasyConfigError(f"\n\n\nERROR: {e}") from None
