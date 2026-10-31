@@ -290,8 +290,9 @@ def load_env_file(
             Defaults to False.
 
     Returns:
-        dict[str, str]: Dictionary of configuration keys and values that
-            were loaded into `os.environ`.
+        dict[str, str]: Dictionary of parsed configuration keys and values
+            from the file, including entries skipped from updating
+            `os.environ` when override is False.
 
     Raises:
         EasyConfigError: If the file cannot be read.
