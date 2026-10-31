@@ -72,8 +72,9 @@ logger see the temporary level too, so this does not provide thread isolation.
 ## Inspect initial and recent log entries
 
 When reviewing log files, you often need to check how an application booted or
-inspect its latest messages. `read_first_log_lines()` and `read_recent_log_lines()`
-let you inspect the head or tail of a log file without reading unneeded lines:
+inspect its latest messages. `read_first_log_lines()` lets you stream the initial
+lines of a log file without reading unneeded lines into memory, while
+`read_recent_log_lines()` fetches the tail of the log:
 
 ```python
 from py_simple import read_first_log_lines, read_recent_log_lines
